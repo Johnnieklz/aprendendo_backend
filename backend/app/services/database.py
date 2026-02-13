@@ -5,7 +5,7 @@ Acesso ao banco de dados TinyDB para operações relacionadas à autenticação 
 """
 
 from tinydb import TinyDB, Query
-from app.config import settings
+from app.services.config import settings
 
 
 # Instancia global do banco de dados, apontando para um arquivo JSON
