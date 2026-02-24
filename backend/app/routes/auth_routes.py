@@ -10,8 +10,8 @@ from fastapi import APIRouter, HTTPException, status
 
 from app.services.config import settings
 from app.services.database import (
-    ForgortPasswordRequest,
-    ForgortPasswordResponse,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
     LoginRequest,
     MessageResponse,
     RegisterRequest,
@@ -76,14 +76,14 @@ def login_user(data: LoginRequest) -> dict:
     access_token = create_access_token(subject=user["email"])
     return {"access_token": access_token, "token_type": "bearer"} 
 
-def forgot_password(data: ForgortPasswordRequest) -> ForgortPasswordResponse:
+def forgot_password(data: ForgotPasswordRequest) -> ForgotPasswordResponse:
     # levantamento sobre quais restrições precisam estar aqui - caso minimo;
     # Qual a lógica da restrição - não precisva de código, mas esquema;
     # Quais premissões/sucesso aconteceria após o processo de verificação - resposta de sucesso ou erro.
     user = find_user_by_email(data.email)
     if not user:
         # Para evitar expor quais emails estão cadastrados, retornamos uma mensagem genérica.
-        return ForgortPasswordResponse(message="Se esse email estiver cadastrado, você receberá um email com instruções para resetar sua senha.")
+        return ForgotPasswordResponse(message="Se esse email estiver cadastrado, você receberá um email com instruções para resetar sua senha.")
     # Gerar um token de reset seguro.
     reset_token = secrets.token_urlsafe(32)
     # Salvar o token de reset no banco de dados associado ao usuário.
@@ -113,3 +113,23 @@ def reset_password(data: ResetPasswordRequest) -> dict:
         },
     )
     return {"message": "Senha alterada com sucesso!!"}
+
+@router.post("/register", response_model=MensageResponse)
+def register_endpont(payload: RegisterUser):
+    """Cadastro de novo usuario"""
+    return register_user(payload)
+
+@router.post("/login", response_model=TokenResponse)
+def login_endpoint(payload: LoginRequest):
+    """Login com email/senha"""
+    return login_user(payload)
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+def forgot_password_endpoint(payload: ForgotPasswordRequest):
+    """Inicia a recuperação de senha"""
+    return forgot_password(payload)
+
+@router.post("/reset-password", response_model=MensageResponse)
+def reset_password_endpoint(payload: ResetPasswordRequest):
+    """Finaliza a recuperação de senha com token"""
+    return update_password(payload)
